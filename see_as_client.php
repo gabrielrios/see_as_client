@@ -27,7 +27,7 @@ class SeeAsClient {
 
     // Is this request attempting to impersonate someone?
     if(!empty($_GET['impersonate'])) {
-      $this->impersonate($_GET['impersonate']);
+      $this->impersonate($_GET['role']);
     }
 
     add_action( 'admin_menu', array( &$this, 'add_top_level_menu' ) );
@@ -65,7 +65,7 @@ class SeeAsClient {
     $page = add_menu_page($page_title, $menu_title, $this->capability, $menu_slug, $function, $icon_url, 10);
   }
 
-  public function impersonate($user_id) {
+  public function impersonate($new_role) {
     global $current_user;
     get_currentuserinfo();
 
@@ -75,10 +75,10 @@ class SeeAsClient {
       $user_roles = $current_user->roles;
       $user_role = array_shift($user_roles);
 
-      $_SESSION['impersonated_by']  = $current_user->ID;
+      $_SESSION['impersonated']  = 1;
       $_SESSION['impersonated_role'] = $user_role;
 
-      $current_user->set_role($_GET['role']);
+      $current_user->set_role($new_role);
     }
 
     wp_redirect(home_url());
@@ -89,8 +89,10 @@ class SeeAsClient {
     global $current_user;
     get_currentuserinfo();
 
-    if(!empty($_SESSION['impersonated_by'])) {
+    if(!empty($_SESSION['impersonated'])) {
+      $_SESSION['impersonated'] = "";
       $current_user->set_role($_SESSION['impersonated_role']);
+      $_SESSION['impersonated_role'] = "";
       wp_redirect(admin_url());
       exit;
     }
