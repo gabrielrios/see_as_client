@@ -9,7 +9,7 @@
  * License:   GPLv2
  */
 
-class RoleChanger {
+class SeeAsClient {
   /**
    * Register all the hooks and filters for the plugin
    */
@@ -102,4 +102,4 @@ class RoleChanger {
   }
 }
 
-add_action('init', create_function('', 'new DJG_Imposter;'));
+add_action('init', create_function('', 'new SeeAsClient;'));
