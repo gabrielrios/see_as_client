@@ -21,14 +21,9 @@ class SeeAsClient {
 
     add_action('wp_logout',           array($this, 'unimpersonate'), 1);
 
-    // Only admins can use this plugin (for obvious reasons)
-    // if(!current_user_can('add_users')) {
-      // return;
-    // }
-
     // Is this request attempting to impersonate someone?
     if(!empty($_GET['impersonate'])) {
-      $this->impersonate($_GET['role']);
+      $this->validate_impersonate($_GET['role']);
     }
 
     add_action( 'admin_menu', array( &$this, 'add_top_level_menu' ) );
@@ -36,33 +31,30 @@ class SeeAsClient {
 
     add_action('wp_footer', array(&$this, 'add_role_levels_to_top'));
 
-    // $this->subscriber_url = home_url() .  "/?impersonate=1&role=Subscriber";
     $this->subscriber_url = add_query_arg(array( 'impersonate' => 1, 'role'=> 'subscriber'), home_url());
     $this->subscriber_url = wp_nonce_url( $this->subscriber_url, 'see-as-client' );
 
-    $this->admin_url = add_query_arg(array( 'impersonate' => 1, 'role'=> 'administrator'), home_url());
+    $this->admin_url = add_query_arg(array( 'impersonate' => 1, 'role'=> 'finish'), home_url());
     $this->admin_url = wp_nonce_url( $this->admin_url, 'see-as-client' );
+
+    add_action('wp_enqueue_scripts', array(&$this, 'add_scripts'));
+    add_action('wp_head', array(&$this, 'add_styles'));
   }
 
   function add_role_levels_to_top() {
-    global $current_user;
-    get_currentuserinfo();
-
-    echo 'USER ROLES: ' . print_r($current_user->roles);
-    echo print_r($_SESSION);
-    if ($_SESSION['impersonated'] || current_user_can('manage_options')) {
+    if ($_SESSION['impersonated']) {
 ?>
     <div class="see-as-client">
       <span>
         View as:
-        <a href="<?php echo $this->subscriber_url ?>" class="active fasted" data-no-turbolink="true">Client</a>
+        <a href="<?php echo $this->subscriber_url ?>" class="active" >Client</a>
         <a href="<?php echo wp_logout_url() ?>" data-confirm="You'll need to sign back when you're finished viewing <?php bloginfo('name'); ?> as a prospect." data-method="delete" rel="nofollow">Prospect</a>
-        <a href="<?php echo $this->admin_url ?>" class="fasted cancel">Finish</a>
+        <a href="<?php echo $this->admin_url ?>" class="finish">Finish</a>
       </span>
     </div>
-    <script type="text/javascript">
-      $('.see-ass-client').hide().prependTo("#whitewrap")
-    </script>
+      <script type="text/javascript">
+      $('.see-as-client').prependTo("#whitewrap")
+        </script>
 <?php
     }
   }
@@ -80,18 +72,22 @@ class SeeAsClient {
     $page = add_menu_page($page_title, $menu_title, $this->capability, $menu_slug, $function, $icon_url, 10);
   }
 
-  public function impersonate($new_role) {
-    global $current_user;
-    get_currentuserinfo();
-
+  public function validate_impersonate($new_role) {
     $nonce = $_REQUEST['_wpnonce'];
     if (!wp_verify_nonce($nonce, 'see-as-client')) {
       die('NOT ONCE BITCH');
       return;
     }
 
-    if ($_GET['role'] == 'Prospect') {
-      wp_logout();
+    $this->impersonate($new_role);
+  }
+
+  private function impersonate($new_role) {
+    global $current_user;
+    get_currentuserinfo();
+
+    if ($_GET['role'] == 'finish') {
+      $this->unimpersonate();
     } else {
       echo 'Setting user role: ' . $new_role;
       $user_roles = $current_user->roles;
@@ -123,7 +119,20 @@ class SeeAsClient {
   }
 
   public function redirect_to_site_as_client() {
-    wp_redirect($this->subscriber_url); exit;
+    $this->impersonate('subscriber');
+    wp_redirect(home_url());
+    exit;
+  }
+
+  function add_scripts() {
+    wp_deregister_script( 'jquery' );
+    wp_register_script( 'jquery', 'http://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js');
+    wp_enqueue_script( 'jquery' );
+  }
+
+  function add_styles() {
+    $this->plugin_url = plugins_url( 'see_as_client' );
+    wp_enqueue_style( "see_as_client", $this->plugin_url. "/css/see_style.css", array(),  '', 'screen');
   }
 }
 
