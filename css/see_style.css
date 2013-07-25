@@ -1,0 +1,41 @@
+.see-as-client span {
+  height: 50px;
+  display: table-cell;
+  margin: 0;
+  text-align: center;
+  width: 10%;
+  vertical-align: middle;
+  background: #000;
+  color: #fff;
+  font-family: arial;
+}
+
+.see-as-client a {
+  background: gray;
+  -webkit-box-shadow: rgba(255, 255, 255, 0.2) 0 1px 0 inset;
+  -moz-box-shadow: rgba(255, 255, 255, 0.2) 0 1px 0 inset;
+  box-shadow: rgba(255, 255, 255, 0.2) 0 1px 0 inset;
+
+  -webkit-border-radius: 3px;
+  -moz-border-radius: 3px;
+  -ms-border-radius: 3px;
+  -o-border-radius: 3px;
+  border-radius: 3px;
+
+  text-decoration: none;
+  padding: 5px 10px;
+  margin: 0 2px;
+
+  color: #fff;
+  font-family: arial;
+}
+
+.see-as-client a.active {
+  background-color: #E4E303;
+  color: gray;
+}
+
+.see-as-client a.finish {
+  background-color: red;
+  margin-left: 30px;
+}
